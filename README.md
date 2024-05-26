@@ -1,6 +1,9 @@
 # Capstone Project Lengwiler
 #### Data Mining for the Social Sciences using R / University of Lucerne / Spring Term 2024 / Dr. Andrea De Angelis
 
+### Original Repository
+The original repository for the capstone project can be found [here](https://github.com/kelecss/ds_capstone_project.git). The current repository was created due to unsolvable merging issues with the original repository.
+
 
 # Zurich Public Pools App
 Author: Kerim Lengwiler
@@ -23,10 +26,9 @@ The Baditicker-API is available here: https://www.stadt-zuerich.ch/stzh/bathdata
 Information about the Open Route Service is available here: https://openrouteservice.org
 
 ## Access
-The web application can be accessed through [this link](https://capstone-project-pools.shinyapps.io/scripts_app/)
+The web application can be accessed through [this link](https://capstone-project-pools.shinyapps.io/scripts_app/).
 
-## Original Repository
-The original repository for the capstone project can be found [here](https://github.com/kelecss/ds_capstone_project.git). The current repository was created due to unsolvable issues with merging.
+
 
 
 
