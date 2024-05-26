@@ -1,5 +1,8 @@
 # Script Name: app.R
-# Description: This script taps into the Zurich Open Data API to extract data on the status of all public outdoor pools in Zurich.
+# Description: This script taps into the Zurich Open Data API to extract data on the status of all public outdoor pools in Zurich. 
+#              In addition, it uses the OpenRouteService API to provide directions to the selected pool from the user's location. 
+#              The user can filter pools based on water temperature and status (open/closed) and view the route to the selected pool
+#              using different modes of transport (walking, cycling, driving).
 # Author: Kerim Lengwiler
 # Date Created: 2024_05_04
 # Date Updated: 2024_05_26
@@ -20,7 +23,7 @@ library(fresh)
 # API Key for OpenRouteService
 ors_api_key <- Sys.getenv("ORS_API_KEY")
 
-# URL for pool data
+# API for pool data
 url <- "https://www.stadt-zuerich.ch/stzh/bathdatadownload"
 
 # Make the request for pool data
@@ -40,7 +43,7 @@ pool_details <- lapply(pool, function(pool) {
   urlPage <- xmlValue(getNodeSet(pool, "./urlPage")[[1]])
   pathPage <- xmlValue(getNodeSet(pool, "./pathPage")[[1]])
   
-  # Return a list of pool details
+# Return a list of pool details
   list(Title = title, Wassertemperatur = temperatureWater, ID = poiid, 
        Update = dateModified, Status = openClosedTextPlain, 
        URL_Page = urlPage, Path_Page = pathPage)
@@ -94,7 +97,7 @@ get_route <- function(from_coords, to_coords, transport_type) {
   tryCatch({
     route <- ors_directions(api_key = ors_api_key,
                             coordinates = list(from_coords, to_coords),
-                            profile = transport_type,  # Use the selected transportation type
+                            profile = transport_type, 
                             format = "geojson")
     print(paste("Route fetched from", from_coords, "to", to_coords, "using", transport_type))
     return(route)
@@ -104,11 +107,11 @@ get_route <- function(from_coords, to_coords, transport_type) {
   })
 }
 
-## Setting up User Interface (ui)
+## Setting up User Interface (UI)
 ui <- dashboardPage(
   dashboardHeader(title = tags$span("Freibäder Stadt Zürich", style = "font-weight: bold;")),
   dashboardSidebar(
-    width = 250, # Customize sidebar width as needed
+    width = 250, 
     sliderInput("temperatur", "Wassertemperatur", 
                 min = min(df_pools$Wassertemperatur, na.rm = TRUE), 
                 max = max(df_pools$Wassertemperatur, na.rm = TRUE), 
@@ -118,10 +121,8 @@ ui <- dashboardPage(
     selectInput("title", "Name des Bades", choices = c("Alle", "Please select")),
     selectInput("transport_type", "Transportart", 
                 choices = c("Fussweg" = "foot-walking", "Fahrrad" = "cycling-regular", "Auto" = "driving-car")),
-    
-    # Button group, positioned below the input selectors
     div(
-      style = "display: flex; justify-content: flex-start; margin-top: 20px; margin-bottom: 20px;", # Added margin-bottom
+      style = "display: flex; justify-content: flex-start; margin-top: 20px; margin-bottom: 20px;", 
       actionButton("show_route", "Route anzeigen", style = "margin-right: 5px;", icon = icon("route")),
       actionButton("clear_routes", "Route löschen", icon = icon("eraser"))
     ),
@@ -183,11 +184,11 @@ ui <- dashboardPage(
 )
 
 
-## Server
+## Server logic
 server <- function(input, output, session) {
   session$userData <- reactiveValues(selected_pool = NULL, user_location = NULL)
   
-  # Observe the map marker click event  
+# Observe the map marker click event  
   observeEvent(input$map_marker_click, {
     req(input$map_marker_click)
     session$userData$selected_pool <- c(input$map_marker_click$lng, input$map_marker_click$lat)  
@@ -201,14 +202,14 @@ server <- function(input, output, session) {
     from_coords <- session$userData$user_location
     to_coords <- session$userData$selected_pool
     
-    # Validate coordinates to ensure they are within Zurich area
+# Validate coordinates to ensure they are within Zurich area
     if (from_coords[1] < 8 || from_coords[1] > 9 || from_coords[2] < 47 || from_coords[2] > 48 ||
         to_coords[1] < 8 || to_coords[1] > 9 || to_coords[2] < 47 || to_coords[2] > 48) {
       showNotification("Coordinates are out of expected range.", type = "error")
       return()
     }
     
-    # Retrieve route from OpenRouteService using the selected transport type
+# Retrieve route from OpenRouteService using the selected transport type
     route <- get_route(from_coords, to_coords, input$transport_type)
     
     if (is.null(route)) {
@@ -217,19 +218,19 @@ server <- function(input, output, session) {
     }
     
     leafletProxy("map") %>% 
-      clearGroup("route") %>%  # Clear previous routes
+      clearGroup("route") %>% 
       addGeoJSON(route, color = "blue", weight = 5, opacity = 0.7, group = "route")  
     showNotification("Route angezeigt.", type = "message")
   })
   
-  # Clearing routes
+# Clearing routes
   observeEvent(input$clear_routes, {
     leafletProxy("map") %>% 
       clearGroup("route")
     showNotification("Routen gelöscht.", type = "message")
   })
   
-  # Printing latitude, longitude, and geolocation info
+# Printing latitude, longitude, and geolocation info
   output$lat <- renderPrint({
     req(input$user_lat)  
     input$user_lat
@@ -249,13 +250,13 @@ server <- function(input, output, session) {
     input$geolocation_error
   })
   
-  # Observe the 'Update My Location' button click
+# Observe the 'Update My Location' button click
   observeEvent(input$update_location, {
     session$sendCustomMessage(type = 'getLocation', message = 'update')
     showNotification("Standort aktualisiert", type = "message")
   })
   
-  # Custom message handler for initiating geolocation
+# Custom message handler for initiating geolocation
   tags$script(HTML("
 Shiny.addCustomMessageHandler('getLocation', function(message) {
   if (navigator.geolocation) {
@@ -266,13 +267,13 @@ Shiny.addCustomMessageHandler('getLocation', function(message) {
 });
 "))
   
-  # Updating the title select input
+# Updating the title select input
   observe({
     sorted_titles <- sort(unique(df_pools$Title))
     updateSelectInput(session, "title", choices = c("Alle", sorted_titles))
   })
   
-  # Reactive expression for filtered data
+# Reactive expression for filtered data
   map_df = reactive({
     temp_filtered <- df_pools %>%
       filter(Wassertemperatur >= input$temperatur[1], Wassertemperatur <= input$temperatur[2])
@@ -297,25 +298,25 @@ Shiny.addCustomMessageHandler('getLocation', function(message) {
       st_set_crs(4326)
   })
   
-  # Initial map rendering
+# Initial map rendering
   output$map <- renderLeaflet({
     leaflet() %>%
       addTiles() %>%
       setView(lng = 8.5417, lat = 47.3769, zoom = 12) 
   })
   
-  # Updating the map with user location and pool markers
+# Updating the map with user location and pool markers
   observe({
     leafletProxy("map", data = NULL) %>%
       clearMarkers()
     
-    # Add user location marker if available
+# Add user location marker if available
     if (!is.null(input$user_lat) && !is.null(input$user_lon)) {
       leafletProxy("map") %>%
         addMarkers(lng = input$user_lon, lat = input$user_lat, popup = "Your location")
     }
     
-    # Add pool markers
+# Add pool markers
     leafletProxy("map") %>%
       addCircleMarkers(
         data = map_df(),
