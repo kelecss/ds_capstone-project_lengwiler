@@ -1,5 +1,5 @@
 # Capstone Project Lengwiler
-#### Data Mining for the Social Sciences using R / Spring Term 2024 / Dr. Andrea De Angelis
+#### Data Mining for the Social Sciences using R / University of Lucerne / Spring Term 2024 / Dr. Andrea De Angelis
 
 
 # Zurich Public Pools App
@@ -24,6 +24,9 @@ Information about the Open Route Service is available here: https://openrouteser
 
 ## Access
 The web application can be accessed through [this link](https://capstone-project-pools.shinyapps.io/scripts_app/)
+
+## Original Repository
+The original repository for the capstone project can be found [here](https://github.com/kelecss/ds_capstone_project.git). The current repository was created due to unsolvable issues with merging.
 
 
 
