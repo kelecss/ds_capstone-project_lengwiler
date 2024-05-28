@@ -34,6 +34,9 @@ The app is built using the Shiny package in R based on data that is requested an
 ### Use of LLMs
 While not a complete beginner using R, until this project, I have only used R for statistical data analysis and visualization. I therefore used github Copilot as well as ChatGPT 4 to help writing the basic code for the shiny app and to understand and solve issues that arrived with the use of the APIs and the gradual improvement of the application.
 
+### Issues with Github
+The original repository for the capstone project can be found [here](https://github.com/kelecss/ds_capstone_project). The current repository was created due to unsolvable merging issues with the original repository. 
+
 
 ## R Code
 
@@ -119,6 +122,7 @@ df_pools_coordinates <- data.frame(
 # Merging the data frames
 df_pools <- merge(df_pools, df_pools_coordinates, by = "Title")
 ```
+
 
 ## Shiny App
 ### Setup
